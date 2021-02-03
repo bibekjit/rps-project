@@ -26,7 +26,7 @@ test_img=np.array([example['image'].numpy() for example in ds_test])
 
 # print(train_img.shape,test_img.shape)
 
-# but becuz we are concerend with edges of the pictures
+# because we are concerend with edges of the pictures
 # we'll only take one color channel 
 
 train_img=np.array([example['image'].numpy()[:,:,0] for example in ds_train])
@@ -58,6 +58,7 @@ import tensorflow
 from tensorflow.keras.layers import Conv2D,MaxPooling2D,Flatten,Dense
 from tensorflow.keras.layers import Input,GlobalMaxPooling2D,Dropout
 from tensorflow.keras.models import Model,Sequential
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 model=Sequential()
 model.add(Input(shape=(300,300,1)))
@@ -77,18 +78,9 @@ model.add(Dense(3,activation='softmax'))
 model.compile(optimizer='adam',loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
-model.fit(train_img,train_lab,validation_data=(test_img,test_lab),epochs=5)
-
-from sklearn.metrics import confusion_matrix
-pred=np.argmax(model.predict(test_img),axis=-1)
-print(confusion_matrix(test_lab,pred))
-
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-data_gen=ImageDataGenerator(width_shift_range=0.1,
-                            height_shift_range=0.1,horizontal_flip=True)
+data_gen=ImageDataGenerator(width_shift_range=0.1,height_shift_range=0.1,horizontal_flip=True)
 train_gen=data_gen.flow(train_img,train_lab,batch_size=32)
-model.fit(train_gen,validation_data=(test_img,test_lab),
-          steps_per_epoch=train_img.shape[0]//32,epochs=3)
+model.fit(train_gen,validation_data=(test_img,test_lab),steps_per_epoch=train_img.shape[0]//32,epochs=3)
 
 model.evaluate(test_img,test_lab)
 
